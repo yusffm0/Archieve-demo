@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Archive</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --surface-2: #f0f2f8;
+    --border: #e3e6ef;
+    --text: #1a1d2e;
+    --muted: #6b7088;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-soft: #eef0ff;
+    --warn: #b45309;
+    --warn-bg: #fff7e6;
+    --warn-border: #f5d48a;
+    --danger: #dc2626;
+    --danger-soft: #fdecec;
+    --ok: #059669;
+    --ok-soft: #e6f7f0;
+    --shadow: 0 1px 2px rgba(20,24,50,.05), 0 4px 16px rgba(20,24,50,.06);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1120;
+      --surface: #181a2e;
+      --surface-2: #20233b;
+      --border: #2a2e4a;
+      --text: #eceefc;
+      --muted: #9094b3;
+      --accent: #7c83ff;
+      --accent-hover: #9aa0ff;
+      --accent-soft: #23264a;
+      --warn: #f6b94c;
+      --warn-bg: #2b2412;
+      --warn-border: #5c4a1a;
+      --danger: #ff6b6b;
+      --danger-soft: #3a1c24;
+      --ok: #34d399;
+      --ok-soft: #123226;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", Tahoma, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+
+  /* header */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar { max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -.01em; white-space: nowrap; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #8b5cf6); display: grid; place-items: center; color: #fff; flex: none; }
+  .search { position: relative; flex: 1; max-width: 460px; margin-inline-start: auto; }
+  .search input {
+    width: 100%; padding-block: 10px; padding-inline: 38px 44px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .search kbd {
+    position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%);
+    font: 12px ui-monospace, monospace; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 5px; padding: 0 6px; background: var(--surface-2);
+  }
+  .live { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+  .dot.off { background: var(--danger); box-shadow: none; }
+
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+  }
+  .stat .ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+  .stat.warn .ico { background: var(--warn-bg); color: var(--warn); }
+  .stat.bad .ico { background: var(--danger-soft); color: var(--danger); }
+  .stat b { display: block; font-size: 24px; line-height: 1.1; letter-spacing: -.02em; }
+  .stat span { color: var(--muted); font-size: 13px; }
+
+  /* pending */
+  .pending {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: var(--radius); padding: 18px; margin-bottom: 24px;
+  }
+  .pending h2 { margin: 0 0 4px; font-size: 16px; color: var(--warn); display: flex; align-items: center; gap: 8px; }
+  .pending > p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+  .pitem {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; margin-top: 10px; display: grid;
+    grid-template-columns: minmax(180px, 1.1fr) 150px 160px minmax(180px, 2fr) auto; gap: 10px; align-items: end;
+  }
+  .pitem.fresh { animation: pop .6s ease; }
+  @keyframes pop { 0% { transform: scale(.98); box-shadow: 0 0 0 0 var(--accent); } 60% { box-shadow: 0 0 0 8px transparent; } 100% { transform: none; } }
+  .phint {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--accent-soft); color: var(--accent); border-radius: 9px; padding: 8px 12px; font-size: 13.5px; font-weight: 600;
+  }
+  .pfile { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pfile a { color: var(--accent); text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pfile a:hover { text-decoration: underline; }
+  .pfile small { color: var(--muted); }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  [dir="rtl"] label.f { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+  label.f input, label.f select, .inp {
+    text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text);
+    padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2); outline: none; width: 100%;
+  }
+  label.f input:focus, label.f select:focus, .inp:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+  label.f input.err { border-color: var(--danger); }
+  .acts { display: flex; gap: 6px; }
+
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 9px; padding: 9px 14px; cursor: pointer;
+    font-weight: 600; transition: background .15s, border-color .15s, transform .05s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  a.btn { text-decoration: none; display: inline-block; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  .btn.ghost:hover { background: var(--surface-2); color: var(--text); }
+  .btn.danger { color: var(--danger); }
+  .btn.sm { padding: 6px 10px; font-size: 13px; }
+  .btn.with-ico { display: inline-flex; align-items: center; gap: 7px; }
+  .icon-btn { width: 32px; height: 32px; padding: 0; display: inline-grid; place-items: center; }
+
+  /* table card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .toolbar h2 { margin: 0; margin-inline-end: 8px; font-size: 16px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface-2); border-radius: 999px; padding: 4px 12px; cursor: pointer;
+    font-size: 13px; color: var(--muted); font-weight: 600;
+  }
+  .chip:hover { color: var(--text); }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .count { margin-inline-start: auto; color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: start; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+    padding: 10px 16px; background: var(--surface-2); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  [dir="rtl"] th { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+  th:hover { color: var(--text); }
+  th .arr { opacity: .6; margin-inline-start: 4px; }
+  td { padding: 12px 16px; border-top: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.code { font-weight: 700; white-space: nowrap; }
+  td.code button { all: unset; cursor: copy; }
+  td.code button:hover { color: var(--accent); }
+  td.desc { color: var(--text); min-width: 220px; }
+  td.date { color: var(--muted); white-space: nowrap; font-size: 13px; }
+  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 2px 9px; font-size: 12.5px; font-weight: 600; }
+  .tag.missing { background: var(--danger-soft); color: var(--danger); }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.warn { background: var(--warn-bg); color: var(--warn); }
+  td.actions { text-align: end; white-space: nowrap; }
+  mark { background: color-mix(in srgb, var(--accent) 25%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+
+  .empty { text-align: center; padding: 56px 20px; color: var(--muted); }
+  .empty h3 { color: var(--text); margin: 14px 0 4px; }
+  .empty code { background: var(--surface-2); padding: 2px 8px; border-radius: 6px; }
+  .empty .btn { margin-top: 16px; }
+
+  details.ign { margin-top: 20px; color: var(--muted); }
+  details.ign summary { cursor: pointer; font-size: 13.5px; }
+  .ignrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 9px; margin-top: 8px; background: var(--surface); }
+
+  /* dialogs */
+  dialog { border: 1px solid var(--border); border-radius: 16px; padding: 0; background: var(--surface); color: var(--text); width: min(480px, 94vw); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  dialog.wide { width: min(720px, 94vw); }
+  dialog::backdrop { background: rgba(10,12,30,.55); backdrop-filter: blur(3px); }
+  .dlg { padding: 22px; display: grid; gap: 14px; max-height: 88vh; overflow: auto; }
+  .dlg h3 { margin: 0; font-size: 18px; }
+  .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .sec { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  [dir="rtl"] .sec { text-transform: none; letter-spacing: 0; }
+
+  /* browse list */
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 8px 0; font-size: 13.5px; }
+  .crumbs button { all: unset; cursor: pointer; color: var(--accent); font-weight: 600; padding: 2px 6px; border-radius: 6px; }
+  .crumbs button:hover { background: var(--accent-soft); }
+  .crumbs span.sep { color: var(--muted); }
+  [dir="rtl"] .crumbs .sep { display: inline-block; transform: scaleX(-1); }
+  .blist { border: 1px solid var(--border); border-radius: 11px; max-height: 270px; overflow: auto; background: var(--surface); }
+  .brow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--border); }
+  .brow:first-child { border-top: 0; }
+  .brow.folder { cursor: pointer; }
+  .brow.folder:hover { background: var(--surface-2); }
+  .brow svg { flex: none; color: var(--muted); }
+  .brow.folder svg { color: var(--accent); }
+  .bname { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .bname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bname small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sug { border: 1px solid var(--ok); background: var(--ok-soft); border-radius: 11px; overflow: hidden; }
+  .sug .brow { border-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+  .orline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 11px; font-size: 13.5px; color: var(--muted); }
+  .orline span { flex: 1; min-width: 200px; }
+  .none { padding: 16px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+  /* import */
+  .imtop { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .imgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+  .sumbox { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pvwrap { border: 1px solid var(--border); border-radius: 11px; overflow: auto; max-height: 260px; }
+  .pvwrap table { font-size: 13.5px; }
+  .pvwrap td, .pvwrap th { padding: 8px 12px; }
+  .pvwrap th { cursor: default; position: sticky; top: 0; }
+  .pvwrap td.f { color: var(--muted); font-size: 12.5px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  #toasts { position: fixed; inset-inline-end: 20px; bottom: 20px; display: grid; gap: 10px; z-index: 50; }
+  .toast {
+    background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: 11px; box-shadow: var(--shadow);
+    font-size: 14px; max-width: 360px; animation: slide .25s ease;
+  }
+  .toast.err { background: var(--danger); color: #fff; }
+  @keyframes slide { from { transform: translateY(12px); opacity: 0; } }
+
+  @media (max-width: 960px) {
+    .pitem { grid-template-columns: 1fr 1fr; }
+    .pfile, .pitem .acts { grid-column: 1 / -1; }
+    .stats { grid-template-columns: 1fr; }
+    .live span { display: none; }
+    .bar { flex-wrap: wrap; }
+    .search { order: 5; max-width: none; flex-basis: 100%; margin-inline-start: 0; }
+    td.date, th.date { display: none; }
+    .imgrid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand">
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </div>
+      <span data-i="appTitle"></span>
+    </div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" data-ph="search" autocomplete="off">
+      <kbd>/</kbd>
+    </div>
+    <button class="btn with-ico" id="importBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <span data-i="importBtn"></span>
+    </button>
+    <button class="btn" id="langBtn" title="Language / اللغة"></button>
+    <div class="live"><i class="dot" id="dot"></i><span id="livetxt"></span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="stats">
+    <div class="stat"><div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><b id="sTotal">0</b><span data-i="statTotal"></span></div></div>
+    <div class="stat warn"><div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><div><b id="sPending">0</b><span data-i="statPending"></span></div></div>
+    <div class="stat bad"><div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div><div><b id="sMissing">0</b><span data-i="statMissing"></span></div></div>
+  </section>
+
+  <section id="pending" class="pending" hidden></section>
+
+  <section class="card">
+    <div class="toolbar">
+      <h2 data-i="archive"></h2>
+      <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="tableWrap"></div>
+  </section>
+
+  <details class="ign" id="ignBox" hidden>
+    <summary id="ignSum"></summary>
+    <div id="ignList"></div>
+  </details>
+</div>
+
+<!-- edit -->
+<dialog id="dlg">
+  <form method="dialog" id="editForm" class="dlg">
+    <h3 data-i="editTitle"></h3>
+    <label class="f"><span data-i="code"></span><input id="eCode" required dir="auto"></label>
+    <label class="f"><span data-i="category"></span><input id="eCat" list="cats" dir="auto"></label>
+    <label class="f"><span data-i="description"></span><input id="eDesc" dir="auto"></label>
+    <div class="muted small"><span data-i="file"></span>: <span id="eFile" dir="auto"></span></div>
+    <div class="row">
+      <button class="btn" type="button" id="eCancel" data-i="cancel"></button>
+      <button class="btn primary" type="submit" data-i="save"></button>
+    </div>
+  </form>
+</dialog>
+
+<!-- relink / browse -->
+<dialog id="rlDlg" class="wide">
+  <div class="dlg">
+    <h3 id="rlTitle"></h3>
+    <div class="muted small"><span data-i="rlWas"></span> <span id="rlOld" dir="auto"></span></div>
+    <div id="rlSugBox"></div>
+    <div>
+      <div class="sec" data-i="rlBrowse"></div>
+      <input class="inp" id="rlQ" data-ph="rlSearch" dir="auto" autocomplete="off">
+      <div class="crumbs" id="rlCrumbs"></div>
+      <div class="blist" id="rlList"></div>
+    </div>
+    <div class="orline">
+      <span data-i="rlOr"></span>
+      <button class="btn" id="rlUpBtn" data-i="rlPick"></button>
+      <input type="file" id="rlUp" hidden>
+    </div>
+    <div class="row"><button class="btn" id="rlClose" data-i="close"></button></div>
+  </div>
+</dialog>
+
+<!-- import -->
+<dialog id="imDlg" class="wide">
+  <div class="dlg">
+    <h3 data-i="imTitle"></h3>
+    <div id="imStep1">
+      <p class="muted" data-i="imIntro" style="margin-top:0"></p>
+      <button class="btn primary" id="imPick" data-i="imChoose"></button>
+      <input type="file" id="imFile" accept=".xlsx,.xls,.csv,.txt" hidden>
+      <div id="imStatus" class="muted small" style="margin-top:10px"></div>
+    </div>
+    <div id="imStep2" hidden style="display:grid;gap:14px">
+      <div class="imtop"><span class="tag" id="imName" dir="auto"></span><button class="btn sm" id="imChange" data-i="imChange"></button></div>
+      <div class="imgrid" id="imMapBox"></div>
+      <label class="chk"><input type="checkbox" id="imHdr"><span data-i="imHeader"></span></label>
+      <div class="sumbox" id="imSummary"></div>
+      <div class="pvwrap" id="imPreview"></div>
+      <div class="muted small" data-i="imHelp"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="imClose" data-i="cancel"></button>
+      <button class="btn primary" id="imGo" disabled></button>
+    </div>
+  </div>
+</dialog>
+
+<datalist id="cats"></datalist>
+<div id="toasts"></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+
+  // ======================= translations =======================
+  const T = {
+    en: {
+      appTitle: 'Document Archive',
+      search: 'Search code, description, category…',
+      watching: 'Watching folder', disconnected: 'Disconnected — retrying',
+      importBtn: 'Import Excel',
+      statTotal: 'Archived documents', statPending: 'Action required', statMissing: 'Missing files',
+      pendingTitle: (n) => `Action required — ${n} new document${n > 1 ? 's' : ''}`,
+      pendingHelp: 'These files are in your documents folder but not in the archive yet. Add a code and description to file them.',
+      code: 'Code', category: 'Category', description: 'Description', descPh: 'What is this document?',
+      add: 'Add', ignore: 'Ignore', ignoreTip: 'Hide this file from the list',
+      movedHint: (c) => `Looks like “${c}” was moved here`, relinkBtn: (c) => `Relink ${c}`,
+      archive: 'Archive', all: 'All', countOf: (a, b) => `${a} of ${b}`, colAdded: 'Added',
+      emptyTitle: 'Your archive is empty',
+      emptyText: 'Drop your scanned PDFs into the documents folder and they will show up here — or import your existing Excel sheet.',
+      noMatches: 'No matches', tryOther: 'Try a different search or category.',
+      open: 'Open', edit: 'Edit', remove: 'Remove from archive', copyTip: 'Click to copy code', copied: (c) => `Copied ${c}`,
+      fileMissing: 'File missing', browse: 'Browse…',
+      confirmRemove: (c) => `Remove “${c}” from the archive?\n\nThe PDF file itself is NOT deleted — if it is still in the folder it will appear under “Action required” again.`,
+      removed: 'Removed from archive', ignored: 'File ignored', toastAdded: (c) => `Added ${c}`, saved: 'Saved',
+      ignoredN: (n) => `${n} ignored file${n > 1 ? 's' : ''}`, restore: 'Restore',
+      editTitle: 'Edit document', file: 'File', cancel: 'Cancel', save: 'Save', close: 'Close',
+      newOne: (n) => `New document needs action: ${n}`, newMany: (n) => `${n} new documents need action`,
+      notifTitle: 'Document Archive — action required', notifMany: (n) => `${n} new documents were added to the folder`,
+      // relink
+      rlTitle: (c) => `Locate the file for ${c}`, rlWas: 'Last known file:', rlNone: '(no file recorded)',
+      rlSuggested: 'Suggested matches', rlBrowse: 'Browse the documents folder', rlSearch: 'Search by file name…',
+      rlRoot: 'Documents folder', rlEmpty: 'Nothing here.', rlSelect: 'Select', rlLinked: (c) => `Linked to ${c}`,
+      rlOr: 'Is the file somewhere else on your computer? Pick it and a copy will be saved into the documents folder.',
+      rlPick: 'Choose from computer…', rlDone: (c) => `${c} is linked to its file again`,
+      // import
+      imTitle: 'Import from Excel',
+      imIntro: 'Choose your existing sheet (.xlsx or .csv). Links to your PDFs are detected automatically and matched to the files in your documents folder.',
+      imChoose: 'Choose file…', imChange: 'Choose another file…', imSheet: 'Sheet',
+      imHeader: 'First row contains column titles', imLink: 'File / link column',
+      imNone: '— not used —', imCol: (l) => `Column ${l}`, imStOk: 'Linked', imStMissing: 'File not found',
+      imStDup: 'Duplicate code', imStEmpty: 'No code',
+      imSumOk: (n) => `${n} linked to a file`, imSumMissing: (n) => `${n} without a file (added as “File missing”)`,
+      imSumDup: (n) => `${n} skipped (code already exists)`, imSumEmpty: (n) => `${n} skipped (no code)`,
+      imGo: (n) => `Import ${n} document${n === 1 ? '' : 's'}`, imDone: (n) => `Imported ${n} document${n === 1 ? '' : 's'}`,
+      imHelp: 'Rows without a matching file are still imported, marked “File missing”, so you can browse to the new location afterwards.',
+      imReading: 'Reading file…',
+      // errors
+      err_code_required: 'Code is required',
+      err_file_missing: 'File not found in the documents folder',
+      err_file_taken: 'That file is already linked to another record',
+      err_file_archived: 'This file is already archived',
+      err_code_exists: (c) => `Code “${c}” already exists`,
+      err_unsupported: 'Old .xls files are not supported — in Excel use Save As → Excel Workbook (.xlsx)',
+      err_bad_file: 'Could not read this file',
+      err_too_large: 'This file is too large',
+    },
+    ar: {
+      appTitle: 'أرشيف المستندات',
+      search: 'ابحث بالرمز أو الوصف أو التصنيف…',
+      watching: 'مراقبة المجلد', disconnected: 'انقطع الاتصال — جارٍ إعادة المحاولة',
+      importBtn: 'استيراد من Excel',
+      statTotal: 'مستندات مؤرشفة', statPending: 'يتطلب إجراء', statMissing: 'ملفات مفقودة',
+      pendingTitle: (n) => `يتطلب إجراء — مستندات جديدة: ${n}`,
+      pendingHelp: 'هذه الملفات موجودة في مجلد المستندات لكنها لم تُؤرشف بعد. أضف رمزًا ووصفًا لحفظها.',
+      code: 'الرمز', category: 'التصنيف', description: 'الوصف', descPh: 'ما هذا المستند؟',
+      add: 'إضافة', ignore: 'تجاهل', ignoreTip: 'إخفاء هذا الملف من القائمة',
+      movedHint: (c) => `يبدو أن «${c}» نُقل إلى هنا`, relinkBtn: (c) => `إعادة ربط ${c}`,
+      archive: 'الأرشيف', all: 'الكل', countOf: (a, b) => `${a} من ${b}`, colAdded: 'تاريخ الإضافة',
+      emptyTitle: 'الأرشيف فارغ',
+      emptyText: 'ضع ملفاتك الممسوحة في مجلد المستندات وستظهر هنا تلقائيًا — أو استورد ملف Excel الحالي.',
+      noMatches: 'لا توجد نتائج', tryOther: 'جرّب بحثًا أو تصنيفًا مختلفًا.',
+      open: 'فتح', edit: 'تعديل', remove: 'إزالة من الأرشيف', copyTip: 'انقر لنسخ الرمز', copied: (c) => `تم نسخ ${c}`,
+      fileMissing: 'الملف مفقود', browse: 'استعراض…',
+      confirmRemove: (c) => `إزالة «${c}» من الأرشيف؟\n\nلن يتم حذف ملف PDF نفسه — وإن كان لا يزال في المجلد فسيظهر مجددًا ضمن «يتطلب إجراء».`,
+      removed: 'تمت الإزالة من الأرشيف', ignored: 'تم تجاهل الملف', toastAdded: (c) => `تمت إضافة ${c}`, saved: 'تم الحفظ',
+      ignoredN: (n) => `ملفات متجاهلة: ${n}`, restore: 'استعادة',
+      editTitle: 'تعديل المستند', file: 'الملف', cancel: 'إلغاء', save: 'حفظ', close: 'إغلاق',
+      newOne: (n) => `مستند جديد يتطلب إجراء: ${n}`, newMany: (n) => `${n} مستندات جديدة تتطلب إجراء`,
+      notifTitle: 'أرشيف المستندات — يتطلب إجراء', notifMany: (n) => `أُضيفت ${n} مستندات جديدة إلى المجلد`,
+      rlTitle: (c) => `تحديد ملف ${c}`, rlWas: 'آخر ملف معروف:', rlNone: '(لا يوجد ملف مسجَّل)',
+      rlSuggested: 'اقتراحات مطابقة', rlBrowse: 'استعراض مجلد المستندات', rlSearch: 'ابحث باسم الملف…',
+      rlRoot: 'مجلد المستندات', rlEmpty: 'لا يوجد شيء هنا.', rlSelect: 'اختيار', rlLinked: (c) => `مرتبط بـ ${c}`,
+      rlOr: 'الملف في مكان آخر على جهازك؟ اخترْه وسيتم حفظ نسخة منه داخل مجلد المستندات.',
+      rlPick: 'اختيار من الجهاز…', rlDone: (c) => `تم ربط ${c} بملفه من جديد`,
+      imTitle: 'استيراد من Excel',
+      imIntro: 'اختر ملفك الحالي (‎.xlsx أو ‎.csv). يتم اكتشاف روابط ملفات PDF تلقائيًا ومطابقتها مع الملفات الموجودة في مجلد المستندات.',
+      imChoose: 'اختيار ملف…', imChange: 'اختيار ملف آخر…', imSheet: 'الورقة',
+      imHeader: 'الصف الأول يحتوي على عناوين الأعمدة', imLink: 'عمود الملف / الرابط',
+      imNone: '— غير مستخدم —', imCol: (l) => `العمود ${l}`, imStOk: 'مرتبط', imStMissing: 'الملف غير موجود',
+      imStDup: 'رمز مكرر', imStEmpty: 'بلا رمز',
+      imSumOk: (n) => `${n} مرتبط بملف`, imSumMissing: (n) => `${n} بلا ملف (سيُضاف بحالة «الملف مفقود»)`,
+      imSumDup: (n) => `${n} متجاوَز (الرمز موجود مسبقًا)`, imSumEmpty: (n) => `${n} متجاوَز (بلا رمز)`,
+      imGo: (n) => `استيراد ${n} مستند`, imDone: (n) => `تم استيراد ${n} مستند`,
+      imHelp: 'الصفوف التي لا يُعثر على ملفها تُستورد أيضًا بحالة «الملف مفقود»، لتحدد مكانها الجديد لاحقًا.',
+      imReading: 'جارٍ قراءة الملف…',
+      err_code_required: 'الرمز مطلوب',
+      err_file_missing: 'الملف غير موجود في مجلد المستندات',
+      err_file_taken: 'هذا الملف مرتبط بسجل آخر',
+      err_file_archived: 'هذا الملف مؤرشف بالفعل',
+      err_code_exists: (c) => `الرمز «${c}» موجود مسبقًا`,
+      err_unsupported: 'ملفات ‎.xls القديمة غير مدعومة — في Excel استخدم «حفظ باسم» ← مصنف Excel (‎.xlsx)',
+      err_bad_file: 'تعذّرت قراءة هذا الملف',
+      err_too_large: 'حجم الملف كبير جدًا',
+    },
+  };
+  let lang = 'en';
+  try { lang = localStorage.getItem('lang') || ((navigator.language || 'en').toLowerCase().startsWith('ar') ? 'ar' : 'en'); } catch (_) {}
+  const t = (k, ...a) => {
+    const v = T[lang][k] ?? T.en[k] ?? k;
+    return typeof v === 'function' ? v(...a) : v;
+  };
+  function msgOf(e) {
+    const f = T[lang]['err_' + e.code] ?? T.en['err_' + e.code];
+    return f === undefined ? e.message : typeof f === 'function' ? f(e.detail) : f;
+  }
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-i]').forEach((el) => { el.textContent = t(el.dataset.i); });
+    document.querySelectorAll('[data-ph]').forEach((el) => { el.placeholder = t(el.dataset.ph); });
+    $('#langBtn').textContent = lang === 'ar' ? 'English' : 'العربية';
+    $('#livetxt').textContent = $('#dot').classList.contains('off') ? t('disconnected') : t('watching');
+  }
+  $('#langBtn').onclick = () => {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    try { localStorage.setItem('lang', lang); } catch (_) {}
+    applyLang();
+    render();
+  };
+
+  // ======================= helpers =======================
+  let state = { records: [], pending: [], ignored: [] };
+  let query = '', cat = 'All', sortKey = 'addedAt', sortDir = -1;
+  let seenPending = null;
+  let freshFiles = new Set();
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fileUrl = (f) => '/files/' + f.split('/').map(encodeURIComponent).join('/');
+  const fmtSize = (n) => n == null ? '' : n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(0) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+  const fmtDate = (iso) => new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-EG-u-nu-latn' : undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  const hl = (text) => {
+    const s = esc(text);
+    if (!query) return s;
+    const re = new RegExp('(' + esc(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+    return s.replace(re, '<mark>$1</mark>');
+  };
+  const I = {
+    doc: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
+    folder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  };
+
+  function toast(msg, err) {
+    const el = document.createElement('div');
+    el.className = 'toast' + (err ? ' err' : '');
+    el.textContent = msg;
+    $('#toasts').appendChild(el);
+    setTimeout(() => el.remove(), err ? 5000 : 3500);
+  }
+  const mkErr = (d) => Object.assign(new Error(d.error || 'Request failed'), { code: d.code, detail: d.detail });
+  async function api(method, url, body) {
+    const r = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw mkErr(data);
+    return data;
+  }
+  async function sendFile(url, file) {
+    const r = await fetch(url, { method: 'POST', headers: { 'X-Filename': encodeURIComponent(file.name) }, body: file });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw mkErr(data);
+    return data;
+  }
+
+  // ======================= notifications =======================
+  function notifyNew(newOnes) {
+    const n = newOnes.length;
+    toast(n === 1 ? t('newOne', newOnes[0].name) : t('newMany', n));
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(t('notifTitle'), { body: n === 1 ? newOnes[0].name : t('notifMany', n) });
+      }
+    } catch (_) {}
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .05;
+      o.connect(g); g.connect(ctx.destination); o.start();
+      g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .25);
+      o.stop(ctx.currentTime + .25);
+    } catch (_) {}
+  }
+  document.addEventListener('click', () => {
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  }, { once: true });
+
+  // ======================= load + render =======================
+  async function load() {
+    state = await (await fetch('/api/state')).json();
+    const cur = new Set(state.pending.map((p) => p.file));
+    if (seenPending === null) {
+      seenPending = cur;
+    } else {
+      const fresh = state.pending.filter((p) => !seenPending.has(p.file));
+      if (fresh.length) { fresh.forEach((p) => freshFiles.add(p.file)); notifyNew(fresh); }
+      seenPending = new Set([...seenPending].filter((f) => cur.has(f)).concat([...cur]));
+    }
+    render();
+  }
+
+  function render() {
+    $('#sTotal').textContent = state.records.length;
+    $('#sPending').textContent = state.pending.length;
+    $('#sMissing').textContent = state.records.filter((r) => r.missing).length;
+    document.title = (state.pending.length ? `(${state.pending.length}) ` : '') + t('appTitle');
+
+    const cats = [...new Set(state.records.map((r) => r.category).filter(Boolean))].sort();
+    $('#cats').innerHTML = cats.map((c) => `<option value="${esc(c)}">`).join('');
+    if (cat !== 'All' && !cats.includes(cat)) cat = 'All';
+    $('#chips').innerHTML = ['All', ...cats].map((c) => `<button class="chip ${c === cat ? 'on' : ''}" data-cat="${esc(c)}">${c === 'All' ? esc(t('all')) : esc(c)}</button>`).join('');
+
+    renderPending();
+    renderTable();
+    renderIgnored();
+  }
+
+  function renderPending() {
+    const box = $('#pending');
+    const draft = {};
+    box.querySelectorAll('.pitem').forEach((el) => {
+      draft[el.dataset.file] = [...el.querySelectorAll('input')].map((i) => i.value);
+    });
+    if (!state.pending.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = `
+      <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        ${esc(t('pendingTitle', state.pending.length))}</h2>
+      <p>${esc(t('pendingHelp'))}</p>
+      ${state.pending.map((p) => {
+        const d = draft[p.file] || [p.suggestCode, p.suggestCategory, ''];
+        return `<div class="pitem ${freshFiles.has(p.file) ? 'fresh' : ''}" data-file="${esc(p.file)}">
+          ${p.relinkOf ? `<div class="phint"><span dir="auto">${esc(t('movedHint', p.relinkOf.code))}</span><button class="btn primary sm" data-act="relink" data-id="${esc(p.relinkOf.id)}">${esc(t('relinkBtn', p.relinkOf.code))}</button></div>` : ''}
+          <div class="pfile"><a href="${fileUrl(p.file)}" target="_blank" rel="noopener" dir="auto" title="${esc(p.file)}">${esc(p.name)}</a><small dir="auto">${fmtSize(p.size)}${p.suggestCategory ? ' · ' + esc(p.file.split('/').slice(0, -1).join('/')) : ''}</small></div>
+          <label class="f">${esc(t('code'))}<input class="pc" value="${esc(d[0])}" dir="auto"></label>
+          <label class="f">${esc(t('category'))}<input class="pg" list="cats" value="${esc(d[1])}" dir="auto"></label>
+          <label class="f">${esc(t('description'))}<input class="pd" value="${esc(d[2])}" placeholder="${esc(t('descPh'))}" dir="auto"></label>
+          <div class="acts">
+            <button class="btn primary" data-act="add">${esc(t('add'))}</button>
+            <button class="btn ghost" data-act="ignore" title="${esc(t('ignoreTip'))}">${esc(t('ignore'))}</button>
+          </div>
+        </div>`;
+      }).join('')}`;
+    freshFiles.clear();
+  }
+
+  function filtered() {
+    const q = query.trim().toLowerCase();
+    const rows = state.records.filter((r) =>
+      (cat === 'All' || r.category === cat) &&
+      (!q || [r.code, r.description, r.category, r.file].some((v) => (v || '').toLowerCase().includes(q))));
+    rows.sort((a, b) => {
+      const x = (a[sortKey] || '').toString().toLowerCase(), y = (b[sortKey] || '').toString().toLowerCase();
+      return x.localeCompare(y, undefined, { numeric: true }) * sortDir;
+    });
+    return rows;
+  }
+
+  function renderTable() {
+    const rows = filtered();
+    $('#count').textContent = t('countOf', rows.length, state.records.length);
+    if (!state.records.length) {
+      $('#tableWrap').innerHTML = `<div class="empty">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <h3>${esc(t('emptyTitle'))}</h3>
+        <div>${esc(t('emptyText'))}</div>
+        <button class="btn primary" data-act="import">${esc(t('importBtn'))}</button></div>`;
+      return;
+    }
+    if (!rows.length) { $('#tableWrap').innerHTML = `<div class="empty"><h3>${esc(t('noMatches'))}</h3><div>${esc(t('tryOther'))}</div></div>`; return; }
+    const th = (k, label, cls = '') => `<th class="${cls}" data-sort="${k}">${esc(label)}${sortKey === k ? `<span class="arr">${sortDir > 0 ? '▲' : '▼'}</span>` : ''}</th>`;
+    $('#tableWrap').innerHTML = `<table><thead><tr>
+      ${th('code', t('code'))}${th('description', t('description'))}${th('category', t('category'))}${th('addedAt', t('colAdded'), 'date')}<th style="cursor:default"></th>
+      </tr></thead><tbody>${rows.map((r) => `
+      <tr data-id="${r.id}">
+        <td class="code"><button data-act="copy" title="${esc(t('copyTip'))}"><bdi>${hl(r.code)}</bdi></button></td>
+        <td class="desc">${r.description ? `<bdi>${hl(r.description)}</bdi>` : '<span style="color:var(--muted)">—</span>'}</td>
+        <td>${r.missing ? `<span class="tag missing">${esc(t('fileMissing'))}</span>` : r.category ? `<span class="tag"><bdi>${hl(r.category)}</bdi></span>` : ''}</td>
+        <td class="date">${fmtDate(r.addedAt)}</td>
+        <td class="actions">
+          ${r.missing
+            ? `<button class="btn sm" data-act="locate">${esc(t('browse'))}</button>`
+            : `<a class="btn primary sm" href="${fileUrl(r.file)}" target="_blank" rel="noopener">${esc(t('open'))}</a>`}
+          <button class="btn ghost icon-btn" data-act="edit" title="${esc(t('edit'))}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="btn ghost icon-btn danger" data-act="del" title="${esc(t('remove'))}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>
+        </td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+
+  function renderIgnored() {
+    const box = $('#ignBox');
+    if (!state.ignored.length) { box.hidden = true; return; }
+    box.hidden = false;
+    $('#ignSum').textContent = t('ignoredN', state.ignored.length);
+    $('#ignList').innerHTML = state.ignored.map((f) => `<div class="ignrow"><span dir="auto">${esc(f)}</span><button class="btn sm" data-restore="${esc(f)}">${esc(t('restore'))}</button></div>`).join('');
+  }
+
+  // ======================= events =======================
+  $('#q').addEventListener('input', (e) => { query = e.target.value; renderTable(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $('#q').focus(); }
+    if (e.key === 'Escape' && document.activeElement === $('#q')) { $('#q').value = ''; query = ''; renderTable(); $('#q').blur(); }
+  });
+  $('#chips').addEventListener('click', (e) => { const b = e.target.closest('[data-cat]'); if (b) { cat = b.dataset.cat; render(); } });
+  $('#tableWrap').addEventListener('click', async (e) => {
+    const th = e.target.closest('th[data-sort]');
+    if (th) { const k = th.dataset.sort; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; return renderTable(); }
+    const btn = e.target.closest('[data-act]'); if (!btn) return;
+    if (btn.dataset.act === 'import') return openImport();
+    const rec = state.records.find((r) => r.id === btn.closest('tr').dataset.id);
+    if (btn.dataset.act === 'copy') { try { await navigator.clipboard.writeText(rec.code); toast(t('copied', rec.code)); } catch (_) {} }
+    if (btn.dataset.act === 'edit') openEdit(rec);
+    if (btn.dataset.act === 'locate') openRelink(rec);
+    if (btn.dataset.act === 'del') {
+      if (!confirm(t('confirmRemove', rec.code))) return;
+      try { await api('DELETE', '/api/records/' + rec.id); toast(t('removed')); } catch (err) { toast(msgOf(err), true); }
+    }
+  });
+
+  async function addPending(item) {
+    const code = item.querySelector('.pc'), body = {
+      file: item.dataset.file, code: code.value,
+      category: item.querySelector('.pg').value, description: item.querySelector('.pd').value,
+    };
+    code.classList.remove('err');
+    try { await api('POST', '/api/records', body); toast(t('toastAdded', body.code)); }
+    catch (err) { if (/code/.test(err.code)) { code.classList.add('err'); code.focus(); } toast(msgOf(err), true); }
+  }
+  $('#pending').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-act]'); if (!btn) return;
+    const item = btn.closest('.pitem');
+    if (btn.dataset.act === 'add') addPending(item);
+    if (btn.dataset.act === 'ignore') { await api('POST', '/api/ignore', { file: item.dataset.file }); toast(t('ignored')); }
+    if (btn.dataset.act === 'relink') {
+      const rec = state.records.find((r) => r.id === btn.dataset.id);
+      try { await api('POST', `/api/records/${btn.dataset.id}/relink`, { file: item.dataset.file }); toast(t('rlDone', rec ? rec.code : '')); }
+      catch (err) { toast(msgOf(err), true); }
+    }
+  });
+  $('#pending').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input')) addPending(e.target.closest('.pitem')); });
+  $('#ignList').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-restore]'); if (b) await api('POST', '/api/unignore', { file: b.dataset.restore });
+  });
+
+  // ---------- edit dialog ----------
+  let editing = null;
+  function openEdit(r) {
+    editing = r;
+    $('#eCode').value = r.code; $('#eCat').value = r.category || ''; $('#eDesc').value = r.description || ''; $('#eFile').textContent = r.file || '—';
+    $('#dlg').showModal();
+  }
+  $('#eCancel').onclick = () => $('#dlg').close();
+  $('#editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await api('PUT', '/api/records/' + editing.id, { code: $('#eCode').value, category: $('#eCat').value, description: $('#eDesc').value });
+      $('#dlg').close(); toast(t('saved'));
+    } catch (err) { toast(msgOf(err), true); }
+  });
+
+  // ======================= relink (browse) =======================
+  const rl = { rec: null, dir: '', timer: null, autoUp: false };
+  const fileRow = (f, { showDir = true, linkOk = true } = {}) => {
+    const taken = f.linkedId && f.linkedId !== rl.rec.id;
+    return `<div class="brow">${I.doc}
+      <div class="bname"><span><bdi>${esc(f.name)}</bdi></span><small><bdi>${showDir && f.dir ? esc(f.dir) + ' · ' : ''}${fmtSize(f.size)}</bdi></small></div>
+      ${taken ? `<span class="tag warn" dir="auto">${esc(t('rlLinked', f.linkedCode))}</span>`
+              : `<button class="btn primary sm" data-pick="${esc(f.file)}">${esc(t('rlSelect'))}</button>`}</div>`;
+  };
+
+  async function openRelink(rec) {
+    rl.rec = rec;
+    rl.dir = rec.file && rec.file.includes('/') ? rec.file.split('/').slice(0, -1).join('/') : '';
+    rl.autoUp = true;
+    $('#rlTitle').textContent = t('rlTitle', rec.code);
+    $('#rlOld').textContent = rec.file || t('rlNone');
+    $('#rlQ').value = '';
+    $('#rlSugBox').innerHTML = '';
+    $('#rlDlg').showModal();
+    loadBrowse();
+    try {
+      const sug = await api('GET', `/api/records/${rec.id}/suggestions`);
+      if (sug.length) {
+        $('#rlSugBox').innerHTML = `<div class="sec">${esc(t('rlSuggested'))}</div><div class="sug">${sug.map((s) => fileRow({ ...s, dir: s.file.split('/').slice(0, -1).join('/') })).join('')}</div>`;
+      }
+    } catch (_) {}
+  }
+
+  async function loadBrowse() {
+    const q = $('#rlQ').value.trim();
+    let d;
+    try { d = await api('GET', '/api/browse?' + (q ? 'q=' + encodeURIComponent(q) : 'dir=' + encodeURIComponent(rl.dir))); }
+    catch (err) { return toast(msgOf(err), true); }
+    const list = $('#rlList');
+    if (q) {
+      $('#rlCrumbs').innerHTML = '';
+      list.innerHTML = d.files.length ? d.files.map((f) => fileRow(f)).join('') : `<div class="none">${esc(t('noMatches'))}</div>`;
+      return;
+    }
+    if (rl.autoUp && d.dir && !d.folders.length && !d.files.length) { rl.dir = d.parent || ''; return loadBrowse(); }
+    rl.autoUp = false;
+    rl.dir = d.dir;
+    const parts = d.dir ? d.dir.split('/') : [];
+    let acc = '';
+    $('#rlCrumbs').innerHTML = `<button data-dir="">${esc(t('rlRoot'))}</button>` + parts.map((p) => {
+      acc = acc ? acc + '/' + p : p;
+      return `<span class="sep">›</span><button data-dir="${esc(acc)}" dir="auto">${esc(p)}</button>`;
+    }).join('');
+    const rows = d.folders.map((f) => `<div class="brow folder" data-open="${esc(d.dir ? d.dir + '/' + f : f)}">${I.folder}<div class="bname"><span><bdi>${esc(f)}</bdi></span></div></div>`)
+      .concat(d.files.map((f) => fileRow(f, { showDir: false })));
+    list.innerHTML = rows.length ? rows.join('') : `<div class="none">${esc(t('rlEmpty'))}</div>`;
+  }
+
+  $('#rlQ').addEventListener('input', () => { clearTimeout(rl.timer); rl.timer = setTimeout(loadBrowse, 200); });
+  $('#rlCrumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-dir]'); if (b) { rl.dir = b.dataset.dir; loadBrowse(); } });
+  async function pickFile(e) {
+    const folder = e.target.closest('[data-open]');
+    if (folder) { rl.dir = folder.dataset.open; return loadBrowse(); }
+    const b = e.target.closest('[data-pick]'); if (!b) return;
+    try {
+      await api('POST', `/api/records/${rl.rec.id}/relink`, { file: b.dataset.pick });
+      $('#rlDlg').close(); toast(t('rlDone', rl.rec.code)); load();
+    } catch (err) { toast(msgOf(err), true); }
+  }
+  $('#rlList').addEventListener('click', pickFile);
+  $('#rlSugBox').addEventListener('click', pickFile);
+  $('#rlClose').onclick = () => $('#rlDlg').close();
+  $('#rlUpBtn').onclick = () => $('#rlUp').click();
+  $('#rlUp').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+      await sendFile(`/api/records/${rl.rec.id}/upload`, f);
+      $('#rlDlg').close(); toast(t('rlDone', rl.rec.code)); load();
+    } catch (err) { toast(msgOf(err), true); }
+  });
+
+  // ======================= import =======================
+  const imp = { file: null, data: null, header: true, map: { code: '', description: '', category: '', link: '' }, sheet: 0, seq: 0, timer: null, result: null };
+  const colLetter = (i) => { let s = '', n = i + 1; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+
+  function openImport() {
+    imp.file = null; imp.data = null; imp.result = null; imp.sheet = 0;
+    $('#imStep1').hidden = false; $('#imStep2').hidden = true; $('#imStatus').textContent = '';
+    $('#imGo').disabled = true; $('#imGo').textContent = t('imGo', 0);
+    $('#imDlg').showModal();
+  }
+  $('#importBtn').onclick = openImport;
+  $('#imClose').onclick = () => $('#imDlg').close();
+  $('#imPick').onclick = () => $('#imFile').click();
+  $('#imChange').onclick = () => $('#imFile').click();
+  $('#imFile').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) { imp.sheet = 0; parseImport(f); } });
+
+  async function parseImport(file) {
+    $('#imStatus').textContent = t('imReading');
+    try {
+      const data = await sendFile('/api/import/parse?sheet=' + imp.sheet, file);
+      imp.file = file; imp.data = data;
+      if (!data.rows.length) throw mkErr({ code: 'bad_file', error: 'Empty' });
+      autoMap();
+      showMapping();
+    } catch (err) {
+      $('#imStatus').textContent = '';
+      toast(msgOf(err), true);
+    }
+  }
+
+  function autoMap() {
+    const rows = imp.data.rows, first = rows[0] || [];
+    imp.header = first.filter(Boolean).length >= 2 && first.every((c) => !/^\d+([.,]\d+)?$/.test(c));
+    const guess = {
+      code: /code|ref|\bno\b|number|\bid\b|رمز|كود|رقم|الرقم/i,
+      description: /desc|title|subject|detail|name|وصف|بيان|موضوع|اسم|تفاصيل/i,
+      category: /categ|type|group|class|تصنيف|نوع|فئة|قسم/i,
+      link: /link|file|path|url|pdf|رابط|ملف|مسار/i,
+    };
+    const taken = new Set();
+    const m = { code: '', description: '', category: '', link: '' };
+    if (imp.header) {
+      for (const k of ['code', 'description', 'category', 'link']) {
+        const i = first.findIndex((h, idx) => !taken.has(idx) && guess[k].test(h));
+        if (i >= 0) { m[k] = String(i); taken.add(i); }
+      }
+    }
+    const free = () => { for (let i = 0; i < first.length; i++) if (!taken.has(i)) return i; return -1; };
+    if (m.code === '') { const i = free(); if (i >= 0) { m.code = String(i); taken.add(i); } }
+    if (m.description === '') { const i = free(); if (i >= 0) { m.description = String(i); taken.add(i); } }
+    imp.map = m;
+  }
+
+  function showMapping() {
+    $('#imStep1').hidden = true; $('#imStep2').hidden = false;
+    $('#imName').textContent = imp.file.name;
+    $('#imHdr').checked = imp.header;
+    renderMapBox();
+    scheduleDry();
+  }
+
+  function renderMapBox() {
+    const first = imp.data.rows[0] || [];
+    const opts = (sel, withNone) => (withNone ? `<option value="">${esc(t('imNone'))}</option>` : '') +
+      first.map((h, i) => `<option value="${i}" ${String(i) === sel ? 'selected' : ''}>${esc(colLetter(i) + (imp.header && h ? ' — ' + h.slice(0, 28) : ''))}</option>`).join('');
+    const sel = (key, labelKey, withNone) => `<label class="f">${esc(t(labelKey))}<select data-k="${key}">${opts(imp.map[key], withNone)}</select></label>`;
+    $('#imMapBox').innerHTML =
+      (imp.data.sheets.length > 1
+        ? `<label class="f">${esc(t('imSheet'))}<select data-sheet>${imp.data.sheets.map((s, i) => `<option value="${i}" ${i === imp.data.sheet ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></label>` : '') +
+      sel('code', 'code', false) + sel('description', 'description', true) + sel('category', 'category', true) + sel('link', 'imLink', true);
+  }
+  $('#imMapBox').addEventListener('change', (e) => {
+    if (e.target.matches('[data-sheet]')) { imp.sheet = +e.target.value; return parseImport(imp.file); }
+    if (e.target.dataset.k) { imp.map[e.target.dataset.k] = e.target.value; scheduleDry(); }
+  });
+  $('#imHdr').addEventListener('change', (e) => { imp.header = e.target.checked; renderMapBox(); scheduleDry(); });
+
+  function buildRows() {
+    const { rows, links } = imp.data, m = imp.map;
+    const num = (v) => (v === '' || v == null ? -1 : +v);
+    const ci = { code: num(m.code), description: num(m.description), category: num(m.category), link: num(m.link) };
+    const out = [];
+    for (let i = imp.header ? 1 : 0; i < rows.length; i++) {
+      const r = rows[i], hl = links[i] || {};
+      const get = (c) => (c >= 0 ? r[c] || '' : '');
+      const order = [ci.link, ci.code, ci.description, ...r.map((_, c) => c)].filter((c, idx, a) => c >= 0 && a.indexOf(c) === idx);
+      const cands = order.map((c) => hl[c]).filter(Boolean);
+      if (ci.link >= 0 && r[ci.link]) cands.push(r[ci.link]);
+      out.push({ code: get(ci.code), description: get(ci.description), category: get(ci.category), links: cands });
+    }
+    return out;
+  }
+
+  function scheduleDry() { clearTimeout(imp.timer); imp.timer = setTimeout(dryRun, 200); }
+  async function dryRun() {
+    if (!imp.data || imp.map.code === '') { $('#imGo').disabled = true; return; }
+    const seq = ++imp.seq;
+    try {
+      const res = await api('POST', '/api/import/commit', { dryRun: true, rows: buildRows() });
+      if (seq !== imp.seq) return;
+      imp.result = res;
+      renderPreview();
+    } catch (err) { toast(msgOf(err), true); }
+  }
+
+  function renderPreview() {
+    const r = imp.result;
+    const chips = [
+      r.linked ? `<span class="tag ok">${esc(t('imSumOk', r.linked))}</span>` : '',
+      r.missing ? `<span class="tag missing">${esc(t('imSumMissing', r.missing))}</span>` : '',
+      r.dup ? `<span class="tag warn">${esc(t('imSumDup', r.dup))}</span>` : '',
+      r.empty ? `<span class="tag warn">${esc(t('imSumEmpty', r.empty))}</span>` : '',
+    ].join('');
+    $('#imSummary').innerHTML = chips;
+    const st = { ok: ['ok', 'imStOk'], missing: ['missing', 'imStMissing'], dup: ['warn', 'imStDup'], empty: ['warn', 'imStEmpty'] };
+    $('#imPreview').innerHTML = `<table><thead><tr><th>${esc(t('code'))}</th><th>${esc(t('description'))}</th><th></th></tr></thead><tbody>${
+      r.preview.map((p) => `<tr><td class="code"><bdi>${esc(p.code) || '—'}</bdi></td><td><bdi>${esc(p.description)}</bdi></td>
+        <td><span class="tag ${st[p.status][0]}">${esc(t(st[p.status][1]))}</span>${p.status === 'ok' ? `<div class="f" dir="auto" style="margin-top:2px">${esc(p.file)}</div>` : ''}</td></tr>`).join('')}</tbody></table>`;
+    $('#imGo').disabled = r.added === 0;
+    $('#imGo').textContent = t('imGo', r.added);
+  }
+
+  $('#imGo').onclick = async () => {
+    $('#imGo').disabled = true;
+    try {
+      const res = await api('POST', '/api/import/commit', { dryRun: false, rows: buildRows() });
+      $('#imDlg').close();
+      toast(t('imDone', res.added));
+      load();
+    } catch (err) { toast(msgOf(err), true); $('#imGo').disabled = false; }
+  };
+
+  // ======================= live updates =======================
+  function connect() {
+    const es = new EventSource('/api/events');
+    es.addEventListener('change', load);
+    es.onopen = () => { $('#dot').classList.remove('off'); $('#livetxt').textContent = t('watching'); load(); };
+    es.onerror = () => { $('#dot').classList.add('off'); $('#livetxt').textContent = t('disconnected'); };
+  }
+  applyLang();
+  load().then(connect);
+})();
+</script>
+</body>
+</html>
